@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+using ParkingModel;
 using Quartz;
 using Quartz.AspNetCore;
 
@@ -9,6 +11,10 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<ParkingContext>();
+
+builder.Services.AddIdentity<ParkingUser, IdentityRole>().AddEntityFrameworkStores<ParkingContext>();
 
 builder.Services.AddQuartz(q =>
 {

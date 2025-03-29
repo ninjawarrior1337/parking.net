@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
-using ParkingModel;
+
+namespace ParkingModel;
 
 public class ParkingLot {
     [Key]
