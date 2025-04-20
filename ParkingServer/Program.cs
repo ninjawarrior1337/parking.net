@@ -22,7 +22,7 @@ builder.Services.AddQuartz(q =>
     q.AddJob<ScrapeParkingDataJob>(opts => { opts.WithIdentity(key); });
 
     q.AddTrigger(opts => opts.ForJob(key).WithSimpleSchedule(x => x
-        .WithIntervalInSeconds(1).RepeatForever()));
+        .WithIntervalInMinutes(3).RepeatForever()));
 });
 
 builder.Services.AddQuartzServer(opts =>
