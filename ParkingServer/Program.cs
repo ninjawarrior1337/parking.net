@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using ParkingModel;
 using Quartz;
 using Quartz.AspNetCore;
+using SignalRChat.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,10 +12,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 builder.Services.AddDbContext<ParkingContext>();
-
 builder.Services.AddIdentity<ParkingUser, IdentityRole>().AddEntityFrameworkStores<ParkingContext>();
+builder.Services.AddSignalR();
 
 builder.Services.AddQuartz(q =>
 {
@@ -22,7 +22,7 @@ builder.Services.AddQuartz(q =>
     q.AddJob<ScrapeParkingDataJob>(opts => { opts.WithIdentity(key); });
 
     q.AddTrigger(opts => opts.ForJob(key).WithSimpleSchedule(x => x
-        .WithIntervalInMinutes(3).RepeatForever()));
+        .WithIntervalInSeconds(5).RepeatForever()));
 });
 
 builder.Services.AddQuartzServer(opts =>
@@ -49,5 +49,5 @@ app.UseCors(options =>
 app.UseAuthorization();
 
 app.MapControllers();
-
+app.MapHub<MeasurementsHub>("/measurementsHub");
 app.Run();

@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@microsoft/signalr": "^8.0.7",
     "@tailwindcss/vite": "^4.0.15",
     "@tanstack/react-router": "^1.114.27",
     "react": "^19.0.0",
