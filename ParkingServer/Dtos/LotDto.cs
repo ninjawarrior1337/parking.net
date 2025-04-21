@@ -1,4 +1,4 @@
-namespace ParkingServer;
+namespace ParkingServer.Dtos;
 
 public class LotDto() {
     public required string LotId {get; set;}
