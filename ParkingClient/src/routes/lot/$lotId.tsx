@@ -11,7 +11,7 @@ function RouteComponent() {
   return (
     <div className="grid grid-cols-12 w-full p-8 gap-8">
       <div className="col-span-4 flex flex-col self-start space-y-8">
-        <LotCard lotId={params.lotId} availableSpaces={3912}></LotCard>
+        <LotCard lotId={params.lotId} spacesCount={3912}></LotCard>
         <form className="shadow border-8 rounded-xl p-4 flex flex-col items-center">
           <h3 className="text-center font-bold text-xl">Manually Add Measurement</h3>
           <div className="flex flex-col py-4">

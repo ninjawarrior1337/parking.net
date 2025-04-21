@@ -14,6 +14,7 @@ function RouteComponent() {
             <label htmlFor="username" className="text-xl font-semibold pb-2">Username</label>
             <input
               name="username"
+              type="username"
               placeholder="Username"
               className="p-2 bg-neutral-100 rounded"
             ></input>
@@ -23,6 +24,7 @@ function RouteComponent() {
             <label className="text-xl font-semibold pb-2" htmlFor="password">Password</label>
             <input
               name="password"
+              type="password"
               placeholder="Password"
               className="p-2 bg-neutral-100 rounded"
             ></input>

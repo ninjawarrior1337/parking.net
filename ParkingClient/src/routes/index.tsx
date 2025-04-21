@@ -1,19 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LotCard } from "../components/LotCard";
+import { getKy } from "../lib/api";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
+  loader: async () => {
+    const ky = getKy()
+
+    return await ky.get("ParkingLotInfo/GetAllLots").json<{
+      lotId: string,
+      spacesCount: number
+    }[]>()
+  }
 });
 
 
 function RouteComponent() {
+  const data = Route.useLoaderData()
   return (
     <div>
       <div className="grid lg:grid-cols-2 w-full p-8 gap-8">
-        <LotCard lotId="B3" availableSpaces={2130}></LotCard>
-        <LotCard lotId="B5" availableSpaces={1283}></LotCard>
-        <LotCard lotId="G3" availableSpaces={1324}></LotCard>
-        <LotCard lotId="G6" availableSpaces={994}></LotCard>
+        {
+          data.map(l => (
+            <LotCard key={l.lotId} lotId={l.lotId} spacesCount={l.spacesCount}></LotCard>
+          ))
+        }
       </div>
     </div>
   );
