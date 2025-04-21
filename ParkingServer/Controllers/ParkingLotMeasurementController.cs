@@ -1,12 +1,16 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using ParkingModel;
+using ParkingServer.Dtos;
+using SignalRChat.Hubs;
 
 namespace ParkingServer.Controllers;
 
 [ApiController]
-[Route("[controller]")]
-public class ParkingLotMeasurementController(ParkingContext context) : ControllerBase
+[Route("/api/[controller]")]
+public class ParkingLotMeasurementController(ParkingContext context, IHubContext<MeasurementsHub> measurementsHub) : ControllerBase
 {
     [HttpGet("GetLatest")]
     public async Task<ActionResult<LotMeasurementDto>> GetLatest(string lotId)
@@ -43,5 +47,25 @@ public class ParkingLotMeasurementController(ParkingContext context) : Controlle
                 Measurements = measurements
             };
         }
+    }
+
+    [HttpPost("AddMeasurement")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult> AddMeasurement(AddMeasurementDto addMeasurementDto) {
+        var pl = await context.Lots.Where(l => l.LotId == addMeasurementDto.LotId).FirstOrDefaultAsync();
+        if(pl == null) {
+            return BadRequest($"Unknown lot {addMeasurementDto.LotId}");
+        }
+        ParkingLotMeasurement m = new () {
+            ParkingLot = pl,
+            AvailableSpaces = addMeasurementDto.AvailableSpaces,
+            Timestamp = DateTimeOffset.Now.ToUniversalTime()
+        };
+
+        await context.Measurements.AddAsync(m);
+        await measurementsHub.Clients.All.SendAsync("OnMeasurement", m);
+        await context.SaveChangesAsync();
+
+        return Ok();
     }
 }

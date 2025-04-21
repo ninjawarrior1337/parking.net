@@ -60,8 +60,6 @@
               enterShell = ''
                 export PATH="$PATH:$HOME/.dotnet/tools";
                 export DOTNET_ROOT="${pkgs.dotnet-sdk.unwrapped}/share/dotnet";
-
-                export CUSTOMCONNSTR_POSTGRES="Host=maru;Username=postgres;Database=csun_parking_dotnet";
               '';
             }
           ];

@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ParkingModel;
+using ParkingServer.Dtos;
 
 namespace ParkingServer.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("/api/[controller]")]
 public class ParkingLotInfoController(ParkingContext context) : ControllerBase
 {
     [HttpGet("GetAllLots")]

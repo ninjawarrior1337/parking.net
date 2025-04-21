@@ -1,4 +1,4 @@
-namespace ParkingServer;
+namespace ParkingServer.Dtos;
 
 public class LotMeasurementDto() {
     public required DateTimeOffset Timestamp {get; set;}
