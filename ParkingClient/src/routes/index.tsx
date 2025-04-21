@@ -1,39 +1,20 @@
-import { Await, createFileRoute, Link } from "@tanstack/react-router";
-
-const loadDggggg = async () => {
-  const getVals = async () => {
-    const res = await fetch("http://localhost:5013/dgggggg");
-
-    await new Promise((res) => setTimeout(res, 1000));
-
-    return (await res.json()) as [
-      {
-        val: number;
-      },
-    ];
-  };
-
-  return {
-    vals: getVals(),
-  };
-};
+import { createFileRoute } from "@tanstack/react-router";
+import { LotCard } from "../components/LotCard";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
-  loader: loadDggggg,
 });
 
-function RouteComponent() {
-  const data = Route.useLoaderData();
 
+function RouteComponent() {
   return (
     <div>
-      Hello "/"! <Link to="/about">Tesst</Link>
-      <Await promise={data.vals} fallback={<div>Loading...</div>}>
-        {(data) => (
-          data.map((v) => <span key={v.val}>{v.val}</span>)
-        )}
-      </Await>
+      <div className="grid lg:grid-cols-2 w-full p-8 gap-8">
+        <LotCard lotId="B3" availableSpaces={2130}></LotCard>
+        <LotCard lotId="B5" availableSpaces={1283}></LotCard>
+        <LotCard lotId="G3" availableSpaces={1324}></LotCard>
+        <LotCard lotId="G6" availableSpaces={994}></LotCard>
+      </div>
     </div>
   );
 }
