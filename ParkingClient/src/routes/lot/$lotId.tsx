@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 import {
@@ -9,12 +9,12 @@ import {
   Tooltip,
   XAxis,
 } from "recharts";
-import useSWRImmutable from "swr/immutable";
 import { LotCard } from "../../components/LotCard";
 import { getKy } from "../../lib/api";
 import { LotDto, LotMeasurementDto } from "../../lib/api/types";
 import { isAdminAtom } from "../../lib/auth/tokenStore";
 import { useOnMeasurement } from "../../lib/useOnMeasurement";
+import useSWRImmutable from "swr/immutable";
 
 export const Route = createFileRoute("/lot/$lotId")({
   component: RouteComponent,
@@ -41,9 +41,10 @@ function RouteComponent() {
   const params = Route.useParams();
   const search = Route.useSearch();
   const data = Route.useLoaderData();
+  const router = useRouter()
   const isAdmin = useAtomValue(isAdminAtom);
 
-  const streamedMeasurements = useOnMeasurement(params.lotId)
+  const streamedMeasurements = useOnMeasurement(params.lotId);
 
   const { data: historicalData } = useSWRImmutable(
     ["ParkingLotMeasurement/GetPastDays", params.lotId, search.historyLength],
@@ -59,15 +60,15 @@ function RouteComponent() {
           timestamp: new Date(m.timestamp),
         })),
       };
+    },
+    {
+      revalidateOnMount: true
     }
   );
 
-  const latestMeasurement = useMemo(() => {
-    return [
-      ...historicalData?.measurements || [],
-      ...streamedMeasurements
-    ].at(-1)
-  }, [historicalData?.measurements, streamedMeasurements])
+  const mergedMeasurements = useMemo(() => {
+    return [...(historicalData?.measurements || []), ...streamedMeasurements];
+  }, [historicalData?.measurements, streamedMeasurements]);
 
   const handleAddMeasurement = async (formData: FormData) => {
     const availableSpaces = parseInt(formData.get("availableSpaces") as string);
@@ -79,6 +80,7 @@ function RouteComponent() {
         availableSpaces,
       },
     });
+    router.invalidate()
   };
 
   return (
@@ -86,7 +88,7 @@ function RouteComponent() {
       <div className="col-span-4 flex flex-col self-start space-y-8">
         <LotCard
           lotId={params.lotId}
-          availableCount={latestMeasurement?.availableSpaces}
+          availableCount={mergedMeasurements.at(-1)?.availableSpaces}
           spacesCount={data.lotInfo.spacesCount}
         ></LotCard>
         {isAdmin && (
@@ -121,11 +123,14 @@ function RouteComponent() {
         <ResponsiveContainer>
           <LineChart
             height={400}
-            data={historicalData?.measurements}
+            data={mergedMeasurements}
             margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
             className="z-0"
           >
-            <XAxis tickFormatter={(v: Date) => v.toLocaleString()} dataKey="timestamp" />
+            <XAxis
+              tickFormatter={(v: Date) => v.toLocaleString()}
+              dataKey="timestamp"
+            />
             <Tooltip />
             <CartesianGrid stroke="#f5f5f5" />
             <Line

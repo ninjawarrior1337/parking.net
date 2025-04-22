@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import useSWR from "swr";
 import { getKy } from "../lib/api";
 import { motion } from "motion/react";
+import { LotMeasurementDto } from "../lib/api/types";
 
 export function LotCard({
   lotId,
@@ -18,7 +19,7 @@ export function LotCard({
       const ky = getKy();
       return await ky
         .get(k[0], { searchParams: { lotId: k[1] } })
-        .json<{ timestamp: string; availableSpaces: number }>();
+        .json<LotMeasurementDto>();
     }
   );
 
