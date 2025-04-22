@@ -9,7 +9,7 @@ export function LotCard({
   lotId: string;
   spacesCount: number;
 }) {
-  const { data, isLoading } = useSWR(
+  const { data, isLoading, error } = useSWR(
     ["ParkingLotMeasurement/GetLatest", lotId],
     async (k) => {
       const ky = getKy();
@@ -29,8 +29,16 @@ export function LotCard({
         <h1 className="text-5xl font-black">{lotId}</h1>
         <div className="h-1 bg-red-500 w-9/12 my-2"></div>
         <div className="text-green-500 text-xl flex items-center space-x-2">
-          {isLoading && <span className="animate-pulse rounded bg-green-500/30 w-16 h-6 inline-block"></span>}
-          <span>{data?.availableSpaces} spaces available out of {spacesCount}</span>
+          {isLoading ? (
+            <span className="animate-pulse rounded bg-green-500/30 w-16 h-6 inline-block"></span>
+          ) : error ? (
+            <span className="text-center text-red-500">???</span>
+          ) : (
+            <span className="text-center">{data?.availableSpaces}</span>
+          )}
+          <span className="text-center">
+            spaces available out of {spacesCount}
+          </span>
         </div>
       </div>
     </Link>

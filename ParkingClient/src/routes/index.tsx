@@ -1,33 +1,46 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Await, createFileRoute } from "@tanstack/react-router";
 import { LotCard } from "../components/LotCard";
-// import { getKy } from "../lib/api";
+import { getKy } from "../lib/api";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
   loader: async () => {
-    // const ky = getKy()
+    const ky = getKy();
 
-    return [
-      {lotId: "B3", spacesCount: 3021}
-    ]
-    // return await ky.get("ParkingLotInfo/GetAllLots").json<{
-    //   lotId: string,
-    //   spacesCount: number
-    // }[]>()
-  }
+    return {
+      lots: ky.get("ParkingLotInfo/GetAllLots").json<
+        {
+          lotId: string;
+          spacesCount: number;
+        }[]
+      >(),
+    };
+  },
 });
 
-
 function RouteComponent() {
-  const data = Route.useLoaderData()
+  const {lots} = Route.useLoaderData();
   return (
     <div>
       <div className="grid lg:grid-cols-2 w-full p-8 gap-8">
-        {
-          data.map(l => (
-            <LotCard key={l.lotId} lotId={l.lotId} spacesCount={l.spacesCount}></LotCard>
-          ))
-        }
+        <Await promise={lots} fallback={
+          <>
+            <div className="w-full h-32 rounded-xl bg-gradient-to-r bg-red-400/30 animate-pulse"></div>
+            <div className="w-full h-32 rounded-xl bg-gradient-to-r bg-red-400/30 animate-pulse"></div>
+            <div className="w-full h-32 rounded-xl bg-gradient-to-r bg-red-400/30 animate-pulse"></div>
+            <div className="w-full h-32 rounded-xl bg-gradient-to-r bg-red-400/30 animate-pulse"></div>
+          </>
+        }>
+          {
+            data => data.map((l) => (
+              <LotCard
+                key={l.lotId}
+                lotId={l.lotId}
+                spacesCount={l.spacesCount}
+              ></LotCard>
+            ))
+          }
+        </Await>
       </div>
     </div>
   );

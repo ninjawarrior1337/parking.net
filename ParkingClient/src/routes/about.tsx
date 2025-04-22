@@ -9,7 +9,7 @@ export const Route = createFileRoute("/about")({
 function RouteComponent() {
   useEffect(() => {
     const connection = new SignalR.HubConnectionBuilder()
-      .withUrl("http://localhost:5013/measurementsHub", {
+      .withUrl(`${import.meta.env.VITE_API_URL.substring(0, import.meta.env.VITE_API_URL.lastIndexOf("/api"))}/measurementsHub`, {
         withCredentials: false,
       })
       .build();
