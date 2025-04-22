@@ -1,9 +1,8 @@
-import * as React from "react";
 import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useAtomValue, useSetAtom } from "jotai";
-import { decodedTokenAtom, tokenAtom } from "../lib/auth/tokenStore";
-import { useEffect } from "react";
+import * as React from "react";
+import { tokenAtom } from "../lib/auth/tokenStore";
 
 export const Route = createRootRoute({
   component: RootComponent,
@@ -23,11 +22,6 @@ const LogoutComponent = () => {
 
 function RootComponent() {
   const token = useAtomValue(tokenAtom)
-  const decodedToken = useAtomValue(decodedTokenAtom)
-
-  useEffect(() => {
-    console.log(decodedToken)
-  }, [decodedToken])
 
   return (
     <React.Fragment>

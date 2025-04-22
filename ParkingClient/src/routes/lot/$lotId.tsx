@@ -53,11 +53,18 @@ function RouteComponent() {
 
   const { data: historicalData, mutate: mutateHistoricalData } = useSWR(
     ["ParkingLotMeasurement/GetPastDays", params.lotId, search.historyLength],
-    (k) => {
+    async (k) => {
       const ky = getKy();
-      return ky
+      const res = await ky
         .get(k[0], { searchParams: { lotId: k[1], days: k[2] } })
         .json<{ measurements: LotMeasurementDto[]; lotId: string }>();
+      return {
+        ...res,
+        measurements: res.measurements.map((m) => ({
+          ...m,
+          timestamp: new Date(m.timestamp),
+        })),
+      };
     }
   );
 
@@ -118,7 +125,7 @@ function RouteComponent() {
             data={historicalData?.measurements}
             margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
           >
-            <XAxis dataKey="timestamp" />
+            <XAxis tickFormatter={(v: Date) => v.toLocaleString()} dataKey="timestamp" />
             <Tooltip />
             <CartesianGrid stroke="#f5f5f5" />
             <Line
