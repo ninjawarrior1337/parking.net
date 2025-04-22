@@ -18,3 +18,7 @@ export type LotMeasurementDto = {
     timestamp: string,
     availableSpaces: number
 }
+
+export type LotMeasurementEvent = LotMeasurementDto & {
+    lotId: string
+}

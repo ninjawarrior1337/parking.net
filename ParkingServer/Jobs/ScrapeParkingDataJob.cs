@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using ParkingServer.Dtos;
 using Quartz;
 using SignalRChat.Hubs;
 
@@ -6,13 +7,9 @@ public class ScrapeParkingDataJob(IHubContext<MeasurementsHub> hub) : IJob
 {
     public async Task Execute(IJobExecutionContext context)
     {
-        // Code that sends a periodic email to the user (for example)
-        // Note: This method must always return a value 
-        // This is especially important for trigger listeners watching job execution
-        // Console.WriteLine("hello 2 world");
-        await hub.Clients.All.SendAsync("OnMeasurement", new ParkingModel.ParkingLotMeasurement() {
+        await hub.Clients.All.SendAsync("OnMeasurement", new LotMeasurementEvent() {
             Timestamp = DateTimeOffset.Now,
-            ParkingLotId = "bruh",
+            LotId = "bruh",
             AvailableSpaces = 300
         });
     }

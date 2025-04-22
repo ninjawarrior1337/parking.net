@@ -68,8 +68,13 @@ public class ParkingLotMeasurementController(ParkingContext context, IHubContext
         };
 
         await context.Measurements.AddAsync(m);
-        await measurementsHub.Clients.All.SendAsync("OnMeasurement", m);
         await context.SaveChangesAsync();
+
+        await measurementsHub.Clients.All.SendAsync("OnMeasurement", new LotMeasurementEvent() {
+            AvailableSpaces = m.AvailableSpaces,
+            LotId = m.ParkingLotId,
+            Timestamp = m.Timestamp
+        });
 
         return Ok();
     }

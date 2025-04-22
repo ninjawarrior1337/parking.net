@@ -1,5 +1,6 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { LotCard } from "../../components/LotCard";
+import { createFileRoute } from "@tanstack/react-router";
+import { useAtomValue } from "jotai";
+import { useMemo } from "react";
 import {
   CartesianGrid,
   Line,
@@ -8,11 +9,12 @@ import {
   Tooltip,
   XAxis,
 } from "recharts";
+import useSWRImmutable from "swr/immutable";
+import { LotCard } from "../../components/LotCard";
 import { getKy } from "../../lib/api";
 import { LotDto, LotMeasurementDto } from "../../lib/api/types";
-import { useAtomValue } from "jotai";
 import { isAdminAtom } from "../../lib/auth/tokenStore";
-import useSWR from "swr";
+import { useOnMeasurement } from "../../lib/useOnMeasurement";
 
 export const Route = createFileRoute("/lot/$lotId")({
   component: RouteComponent,
@@ -25,15 +27,6 @@ export const Route = createFileRoute("/lot/$lotId")({
     const ky = getKy();
 
     return {
-      latestMeasurement: await ky
-        .get("ParkingLotMeasurement/GetLatest", {
-          searchParams: { lotId: params.lotId },
-          signal: abortController.signal,
-        })
-        .json<{
-          timestamp: string;
-          availableSpaces: number;
-        }>(),
       lotInfo: await ky
         .get("ParkingLotInfo/GetLotById", {
           searchParams: { lotId: params.lotId },
@@ -48,10 +41,11 @@ function RouteComponent() {
   const params = Route.useParams();
   const search = Route.useSearch();
   const data = Route.useLoaderData();
-  const router = useRouter();
   const isAdmin = useAtomValue(isAdminAtom);
 
-  const { data: historicalData, mutate: mutateHistoricalData } = useSWR(
+  const streamedMeasurements = useOnMeasurement(params.lotId)
+
+  const { data: historicalData } = useSWRImmutable(
     ["ParkingLotMeasurement/GetPastDays", params.lotId, search.historyLength],
     async (k) => {
       const ky = getKy();
@@ -68,6 +62,13 @@ function RouteComponent() {
     }
   );
 
+  const latestMeasurement = useMemo(() => {
+    return [
+      ...historicalData?.measurements || [],
+      ...streamedMeasurements
+    ].at(-1)
+  }, [historicalData?.measurements, streamedMeasurements])
+
   const handleAddMeasurement = async (formData: FormData) => {
     const availableSpaces = parseInt(formData.get("availableSpaces") as string);
 
@@ -78,8 +79,6 @@ function RouteComponent() {
         availableSpaces,
       },
     });
-    router.invalidate();
-    mutateHistoricalData();
   };
 
   return (
@@ -87,7 +86,7 @@ function RouteComponent() {
       <div className="col-span-4 flex flex-col self-start space-y-8">
         <LotCard
           lotId={params.lotId}
-          availableCount={data.latestMeasurement.availableSpaces}
+          availableCount={latestMeasurement?.availableSpaces}
           spacesCount={data.lotInfo.spacesCount}
         ></LotCard>
         {isAdmin && (
