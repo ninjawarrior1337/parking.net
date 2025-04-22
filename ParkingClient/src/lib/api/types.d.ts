@@ -13,3 +13,8 @@ export type LotDto = {
     lotId: string,
     spacesCount: number
 }
+
+export type LotMeasurementDto = {
+    timestamp: string,
+    availableSpaces: number
+}

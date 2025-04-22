@@ -28,13 +28,18 @@ public class ParkingLotMeasurementController(ParkingContext context, IHubContext
         }
     }
 
-    [HttpGet("GetAllAfter")]
-    public async Task<ActionResult<LotMeasurementsDto>> GetAllAfter(string lotId, DateTimeOffset dateTime)
+    [HttpGet("GetPastDays")]
+    public async Task<ActionResult<LotMeasurementsDto>> GetPastDays(string lotId, int days)
     {
-        var measurements = await context.Measurements.Where(l => l.ParkingLotId == lotId).Where(l => l.Timestamp > dateTime).Select(l => new LotMeasurementDto {
-            Timestamp = l.Timestamp,
-            AvailableSpaces = l.AvailableSpaces
-        }).ToListAsync();
+        var sinceDateTime = DateTimeOffset.Now.Subtract(new TimeSpan(days, 0, 0, 0)).ToUniversalTime();
+        var measurements = await context.Measurements
+            .Where(l => l.ParkingLotId == lotId)
+            .Where(l => l.Timestamp > sinceDateTime)
+            .OrderBy(l => l.Timestamp)
+            .Select(l => new LotMeasurementDto {
+                Timestamp = l.Timestamp,
+                AvailableSpaces = l.AvailableSpaces
+            }).ToListAsync();
 
         if(measurements == null) {
             return new LotMeasurementsDto {

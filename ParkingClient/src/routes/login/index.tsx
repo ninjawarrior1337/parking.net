@@ -7,7 +7,6 @@ export const Route = createFileRoute("/login/")({
 });
 
 function RouteComponent() {
-  const navigate = Route.useNavigate()
   const [error, setError] = useState("")
   const handleSubmit = async (formData: FormData) => {
     const username = formData.get("username") as string
@@ -25,7 +24,7 @@ function RouteComponent() {
       }
     }
     
-    navigate({to: "/"})
+    history.go(-1)
   }
 
   return (

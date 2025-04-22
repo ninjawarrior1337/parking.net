@@ -25,6 +25,7 @@ export function LotCard({
     <Link
       to="/lot/$lotId"
       params={{ lotId }}
+      search={{historyLength: 30}}
       className="w-full h-full shadow-xl p-2 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 cursor-pointer"
     >
       <div className="flex flex-col h-full justify-items-center items-center bg-white rounded-lg py-4">
