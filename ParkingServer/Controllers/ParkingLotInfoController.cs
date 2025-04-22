@@ -17,4 +17,19 @@ public class ParkingLotInfoController(ParkingContext context) : ControllerBase
             SpacesCount = l.SpacesCount
         }).ToListAsync();
     }
+
+    [HttpGet("GetLotById")]
+    public async Task<ActionResult<LotDto>> GetLotById(string lotId)
+    {
+        var lot = await context.Lots.Where(l => l.LotId == lotId).Select(l => new LotDto {
+            LotId = l.LotId,
+            SpacesCount = l.SpacesCount
+        }).FirstOrDefaultAsync();
+
+        if(lot == null) {
+            return NotFound();
+        } else {
+            return lot;
+        }
+    }
 }

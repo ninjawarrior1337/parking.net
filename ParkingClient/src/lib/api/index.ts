@@ -7,7 +7,8 @@ export const getKy = () => {
   return ky.create({
     prefixUrl: import.meta.env.VITE_API_URL,
     headers: {
-      Authorization: `${token}`,
+      Authorization: `Bearer ${token}`,
     },
+    throwHttpErrors: false
   });
 };
