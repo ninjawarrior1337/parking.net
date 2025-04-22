@@ -124,6 +124,7 @@ function RouteComponent() {
             height={400}
             data={historicalData?.measurements}
             margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+            className="z-0"
           >
             <XAxis tickFormatter={(v: Date) => v.toLocaleString()} dataKey="timestamp" />
             <Tooltip />
