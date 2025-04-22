@@ -9,12 +9,12 @@ export function LotCard({
   lotId: string;
   spacesCount: number;
 }) {
-  const { data } = useSWR(
+  const { data, isLoading } = useSWR(
     ["ParkingLotMeasurement/GetLatest", lotId],
     async (k) => {
       const ky = getKy();
       return await ky
-        .get(k[0], { searchParams: { lotId: lotId } })
+        .get(k[0], { searchParams: { lotId: k[1] } })
         .json<{ timestamp: string; availableSpaces: number }>();
     }
   );
@@ -28,9 +28,10 @@ export function LotCard({
       <div className="flex flex-col h-full justify-items-center items-center bg-white rounded-lg py-4">
         <h1 className="text-5xl font-black">{lotId}</h1>
         <div className="h-1 bg-red-500 w-9/12 my-2"></div>
-        <span className="text-green-500 text-xl">
-          {data?.availableSpaces} spaces available out of {spacesCount}
-        </span>
+        <div className="text-green-500 text-xl flex items-center space-x-2">
+          {isLoading && <span className="animate-pulse rounded bg-green-500/30 w-16 h-6 inline-block"></span>}
+          <span>{data?.availableSpaces} spaces available out of {spacesCount}</span>
+        </div>
       </div>
     </Link>
   );
