@@ -50,7 +50,7 @@ public class ParkingLotMeasurementController(ParkingContext context, IHubContext
     }
 
     [HttpPost("AddMeasurement")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = Roles.Roles.Admin)]
     public async Task<ActionResult> AddMeasurement(AddMeasurementDto addMeasurementDto) {
         var pl = await context.Lots.Where(l => l.LotId == addMeasurementDto.LotId).FirstOrDefaultAsync();
         if(pl == null) {
