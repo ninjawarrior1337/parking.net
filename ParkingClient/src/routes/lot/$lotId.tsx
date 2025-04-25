@@ -134,6 +134,7 @@ function RouteComponent() {
             <Tooltip />
             <CartesianGrid stroke="#f5f5f5" />
             <Line
+              name="Available Spaces"
               type="monotone"
               dataKey="availableSpaces"
               stroke="#e4007f"
