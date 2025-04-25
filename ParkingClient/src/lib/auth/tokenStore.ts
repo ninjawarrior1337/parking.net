@@ -2,8 +2,9 @@ import { atom, getDefaultStore } from "jotai";
 import { jwtDecode } from "jwt-decode";
 import { LoginRequest, LoginResponse } from "../api/types";
 import { getKy } from "../api";
+import { atomWithStorage } from "jotai/utils";
 
-export const tokenAtom = atom<string | null>(null);
+export const tokenAtom = atomWithStorage<string | null>("token", null, undefined, {getOnInit: true});
 export const decodedTokenAtom = atom((get) => {
   const token = get(tokenAtom);
   return token ? jwtDecode(token) : null;
