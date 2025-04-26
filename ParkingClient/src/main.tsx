@@ -8,8 +8,8 @@ import { routeTree } from "./routeTree.gen";
 // Create a new router instance
 const router = createRouter({
   routeTree,
-  defaultStaleTime: 60*1000,
   scrollRestoration: true,
+  defaultPendingMinMs: 50,
 });
 
 // Register the router instance for type safety

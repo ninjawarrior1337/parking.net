@@ -1,46 +1,57 @@
-import { Await, createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { Suspense, use } from "react";
 import { LotCard } from "../components/LotCard";
 import { getKy } from "../lib/api";
+import { LotDto } from "../lib/api/types";
 
 export const Route = createFileRoute("/")({
   component: RouteComponent,
-  loader: async () => {
+  staleTime: Infinity,
+  shouldReload: false,
+  loader: async ({ abortController }) => {
     const ky = getKy();
 
     return {
-      lots: ky.get("ParkingLotInfo/GetAllLots").json<
-        {
-          lotId: string;
-          spacesCount: number;
-        }[]
-      >(),
+      lots: ky
+        .get("ParkingLotInfo/GetAllLots", { signal: abortController.signal })
+        .json<LotDto[]>(),
     };
   },
 });
 
+const LotsCardSetComponent = ({
+  lotsPromise,
+}: {
+  lotsPromise: Promise<LotDto[]>;
+}) => {
+  const lots = use(lotsPromise);
+
+  return lots.map((l) => (
+    <LotCard
+      key={l.lotId}
+      lotId={l.lotId}
+      spacesCount={l.spacesCount}
+    ></LotCard>
+  ));
+};
+
 function RouteComponent() {
-  const {lots} = Route.useLoaderData();
+  const { lots } = Route.useLoaderData();
+
   return (
     <div>
       <div className="grid lg:grid-cols-2 w-full p-8 gap-8">
-        <Await promise={lots} fallback={
-          <>
-            <div className="w-full h-32 rounded-xl bg-gradient-to-r bg-red-400/30 animate-pulse"></div>
-            <div className="w-full h-32 rounded-xl bg-gradient-to-r bg-red-400/30 animate-pulse"></div>
-            <div className="w-full h-32 rounded-xl bg-gradient-to-r bg-red-400/30 animate-pulse"></div>
-            <div className="w-full h-32 rounded-xl bg-gradient-to-r bg-red-400/30 animate-pulse"></div>
-          </>
-        }>
-          {
-            data => data.map((l) => (
-              <LotCard
-                key={l.lotId}
-                lotId={l.lotId}
-                spacesCount={l.spacesCount}
-              ></LotCard>
-            ))
+        <Suspense
+          fallback={
+            <>
+              <div className="w-full h-32 rounded-xl bg-gradient-to-r bg-red-400/30 animate-pulse"></div>
+              <div className="w-full h-32 rounded-xl bg-gradient-to-r bg-red-400/30 animate-pulse"></div>
+              <div className="w-full h-32 rounded-xl bg-gradient-to-r bg-red-400/30 animate-pulse"></div>
+            </>
           }
-        </Await>
+        >
+          <LotsCardSetComponent lotsPromise={lots} />
+        </Suspense>
       </div>
     </div>
   );

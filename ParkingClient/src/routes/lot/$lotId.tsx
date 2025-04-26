@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 import {
@@ -9,12 +9,12 @@ import {
   Tooltip,
   XAxis,
 } from "recharts";
+import useSWRImmutable from "swr/immutable";
 import { LotCard } from "../../components/LotCard";
 import { getKy } from "../../lib/api";
 import { LotDto, LotMeasurementDto } from "../../lib/api/types";
 import { isAdminAtom } from "../../lib/auth/tokenStore";
 import { useOnMeasurement } from "../../lib/useOnMeasurement";
-import useSWRImmutable from "swr/immutable";
 
 export const Route = createFileRoute("/lot/$lotId")({
   component: RouteComponent,
@@ -37,38 +37,58 @@ export const Route = createFileRoute("/lot/$lotId")({
   },
 });
 
+function LoadingChartFallback() {
+  return (
+    <div className="w-full h-full bg-neutral-500/10 animate-pulse rounded-2xl flex flex-col items-center justify-center"></div>
+  );
+}
+
+function NoDataChartFallback() {
+  return (
+    <div className="w-full h-full bg-red-400/30 rounded-2xl flex flex-col items-center justify-center p-2 text-center">
+      <p className="font-black text-red-800 text-5xl">No Data Found!</p>
+      <p className="text-2xl font-semibold">
+        Please wait until a measurement is recorded
+      </p>
+    </div>
+  );
+}
+
 function RouteComponent() {
   const params = Route.useParams();
   const search = Route.useSearch();
   const data = Route.useLoaderData();
-  const router = useRouter()
   const isAdmin = useAtomValue(isAdminAtom);
 
   const streamedMeasurements = useOnMeasurement(params.lotId);
 
-  const { data: historicalData } = useSWRImmutable(
+  const { data: historicalData, isLoading } = useSWRImmutable(
     ["ParkingLotMeasurement/GetPastDays", params.lotId, search.historyLength],
     async (k) => {
       const ky = getKy();
-      const res = await ky
+      return ky
         .get(k[0], { searchParams: { lotId: k[1], days: k[2] } })
-        .json<{ measurements: LotMeasurementDto[]; lotId: string }>();
-      return {
-        ...res,
-        measurements: res.measurements.map((m) => ({
-          ...m,
-          timestamp: new Date(m.timestamp),
-        })),
-      };
+        .json<{ measurements: LotMeasurementDto[]; lotId: string }>()
+        .then((res) => ({
+          ...res,
+          measurements: res.measurements.map((m) => ({
+            ...m,
+            timestamp: new Date(m.timestamp),
+          })),
+        }));
     },
     {
-      revalidateOnMount: true
+      revalidateOnMount: true,
     }
   );
 
   const mergedMeasurements = useMemo(() => {
-    return [...(historicalData?.measurements || []), ...streamedMeasurements];
-  }, [historicalData?.measurements, streamedMeasurements]);
+    if (historicalData) {
+      return [...historicalData.measurements, ...streamedMeasurements];
+    }
+
+    return streamedMeasurements;
+  }, [historicalData, streamedMeasurements]);
 
   const handleAddMeasurement = async (formData: FormData) => {
     const availableSpaces = parseInt(formData.get("availableSpaces") as string);
@@ -80,12 +100,40 @@ function RouteComponent() {
         availableSpaces,
       },
     });
-    router.invalidate()
   };
 
   return (
-    <div className="grid grid-cols-12 w-full p-8 gap-8">
-      <div className="col-span-4 flex flex-col self-start space-y-8">
+    <div className="grid grid-cols-1 lg:grid-cols-12 w-full p-8 gap-8">
+      <div className="lg:col-span-8 h-64 lg:order-last">
+        {isLoading ? (
+          <LoadingChartFallback />
+        ) : mergedMeasurements.length === 0 ? (
+          <NoDataChartFallback></NoDataChartFallback>
+        ) : (
+          <ResponsiveContainer>
+            <LineChart
+              height={400}
+              data={mergedMeasurements}
+              margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+            >
+              <XAxis
+                tickFormatter={(v: Date) => v.toLocaleString()}
+                dataKey="timestamp"
+              />
+              <Tooltip />
+              <CartesianGrid stroke="#f5f5f5" />
+              <Line
+                name="Available Spaces"
+                type="monotone"
+                dataKey="availableSpaces"
+                stroke="#e4007f"
+                yAxisId={0}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+      <div className="lg:col-span-4 flex flex-col self-start space-y-8">
         <LotCard
           lotId={params.lotId}
           availableCount={mergedMeasurements.at(-1)?.availableSpaces}
@@ -118,30 +166,6 @@ function RouteComponent() {
             </button>
           </form>
         )}
-      </div>
-      <div className="col-span-8 h-64">
-        <ResponsiveContainer>
-          <LineChart
-            height={400}
-            data={mergedMeasurements}
-            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-            className="z-0"
-          >
-            <XAxis
-              tickFormatter={(v: Date) => v.toLocaleString()}
-              dataKey="timestamp"
-            />
-            <Tooltip />
-            <CartesianGrid stroke="#f5f5f5" />
-            <Line
-              name="Available Spaces"
-              type="monotone"
-              dataKey="availableSpaces"
-              stroke="#e4007f"
-              yAxisId={0}
-            />
-          </LineChart>
-        </ResponsiveContainer>
       </div>
     </div>
   );

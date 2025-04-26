@@ -6,10 +6,6 @@ import { LotMeasurementEvent } from "./api/types";
 export const useOnMeasurement = (lotId: string) => {
   const [measurements, setMeasurements] = useState<LotMeasurementEvent[]>([]);
 
-  useEffect(() => {
-    console.log(measurements)
-  }, [measurements])
-
   const handleOnMeasurement = useCallback((m: LotMeasurementEvent) => {
     if(lotId == m.lotId) {
         setMeasurements(prev => [...prev, m])

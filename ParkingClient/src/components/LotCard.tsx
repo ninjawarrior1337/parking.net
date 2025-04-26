@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import { motion, useMotionValue, useTransform } from "motion/react";
 import useSWR from "swr";
 import { getKy } from "../lib/api";
-import { motion } from "motion/react";
 import { LotMeasurementDto } from "../lib/api/types";
 
 export function LotCard({
@@ -17,32 +17,56 @@ export function LotCard({
     availableCount ? null : ["ParkingLotMeasurement/GetLatest", lotId],
     async (k) => {
       const ky = getKy();
+
+      await new Promise((res) => {
+        setTimeout(res, 1000);
+      });
+
       return await ky
-        .get(k[0], { searchParams: { lotId: k[1] } })
+        .get(k[0], { searchParams: { lotId: k[1] }, throwHttpErrors: true })
         .json<LotMeasurementDto>();
     }
   );
 
+  const trueSpacesAvailable = availableCount ? availableCount : data?.availableSpaces
+  const fillPercentage = (trueSpacesAvailable ?? 0) / spacesCount
+
+  const fillPercentageMotionValue = useMotionValue(0)
+  fillPercentageMotionValue.set(fillPercentage*100)
+
+  const textColor = useTransform(fillPercentageMotionValue, [0, 100], ["#fb2c36", "#00c951"])
+
   return (
-    <Link to="/lot/$lotId" params={{ lotId }} search={{ historyLength: 30 }}>
-      <motion.div layoutId={`LotCard-${lotId}`} className="w-full h-full shadow-xl p-2 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 cursor-pointer z-50">
+    <Link
+      preload="intent"
+      to="/lot/$lotId"
+      params={{ lotId }}
+      search={{ historyLength: 30 }}
+    >
+      <motion.div
+        layoutId={`LotCard-${lotId}`}
+        className="w-full h-full shadow-xl p-2 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 cursor-pointer z-50"
+      >
         <div className="flex flex-col h-full justify-items-center items-center bg-white rounded-lg py-4">
           <h1 className="text-5xl font-black">{lotId}</h1>
           <div className="h-1 bg-red-500 w-9/12 my-2"></div>
-          <div className="text-green-500 text-xl flex items-center space-x-2">
-            {error || (!availableCount && !data?.timestamp) ? (
+          <motion.div
+            className="text-xl flex items-center space-x-2"
+            style={{ color: textColor }}
+          >
+            {error || (!trueSpacesAvailable && !isLoading) ? (
               <span className="text-center text-red-500">???</span>
             ) : isLoading ? (
-              <span className="animate-pulse rounded bg-green-500/30 w-16 h-6 inline-block"></span>
+              <span className="animate-pulse rounded bg-red-500/30 w-16 h-6 inline-block"></span>
             ) : (
               <span className="text-center">
-                {data?.availableSpaces || availableCount}
+                {trueSpacesAvailable}
               </span>
             )}
             <span className="text-center">
               spaces available out of {spacesCount}
             </span>
-          </div>
+          </motion.div>
         </div>
       </motion.div>
     </Link>

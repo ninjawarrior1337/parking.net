@@ -9,8 +9,23 @@ export const decodedTokenAtom = atom((get) => {
   const token = get(tokenAtom);
   return token ? jwtDecode(token) : null;
 });
+
+export const isAuthenticatedAtom = atom(get => {
+  const tokenData = get(decodedTokenAtom)
+
+  if(tokenData) {
+    return tokenData.exp! > (Date.now() / 1000)
+  }
+
+  return false
+})
+
 export const isAdminAtom = atom((get) => {
   const data = get(decodedTokenAtom);
+
+  if(!get(isAuthenticatedAtom)) {
+    return false
+  }
 
   if (
     data &&
