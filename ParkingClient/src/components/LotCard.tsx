@@ -1,8 +1,10 @@
-import { Link } from "@tanstack/react-router";
+import { createLink } from "@tanstack/react-router";
 import { motion, useMotionValue, useTransform } from "motion/react";
 import useSWR from "swr";
 import { getKy } from "../lib/api";
 import { LotMeasurementDto } from "../lib/api/types";
+
+const MotionLink = createLink(motion.a)
 
 export function LotCard({
   lotId,
@@ -37,14 +39,14 @@ export function LotCard({
   const textColor = useTransform(fillPercentageMotionValue, [0, 100], ["#fb2c36", "#00c951"])
 
   return (
-    <Link
+    <MotionLink
       preload="intent"
       to="/lot/$lotId"
       params={{ lotId }}
       search={{ historyLength: 30 }}
+      layoutId={`LotCard-${lotId}`}
     >
-      <motion.div
-        layoutId={`LotCard-${lotId}`}
+      <div
         className="w-full h-full shadow-xl p-2 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 cursor-pointer z-50"
       >
         <div className="flex flex-col h-full justify-items-center items-center bg-white rounded-lg py-4">
@@ -68,7 +70,7 @@ export function LotCard({
             </span>
           </motion.div>
         </div>
-      </motion.div>
-    </Link>
+      </div>
+    </MotionLink>
   );
 }

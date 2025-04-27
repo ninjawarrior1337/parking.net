@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { login } from "../../lib/auth/tokenStore";
+import { login } from "../lib/auth/tokenStore";
 import { useState } from "react";
 
-export const Route = createFileRoute("/login/")({
+export const Route = createFileRoute("/login")({
   component: RouteComponent,
 });
 
@@ -29,7 +29,7 @@ function RouteComponent() {
 
   return (
     <div className="grid place-items-center min-h-full h-full min-w-full">
-      <div className="w-72 p-6 shadow-2xl rounded-xl">
+      <div className="w-72 p-6 shadow-2xl rounded-xl animate-in zoom-in duration-200">
         <h2 className="text-3xl font-bold text-center mb-4">Login</h2>
         <form action={handleSubmit} className="flex flex-col space-y-4 items-center *:*:w-full">
           <div className="flex flex-col w-full">

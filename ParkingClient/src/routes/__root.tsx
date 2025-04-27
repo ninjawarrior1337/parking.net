@@ -2,10 +2,7 @@ import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useAtomValue, useSetAtom } from "jotai";
 import * as React from "react";
-import {
-  isAuthenticatedAtom,
-  tokenAtom,
-} from "../lib/auth/tokenStore";
+import { isAuthenticatedAtom, tokenAtom } from "../lib/auth/tokenStore";
 
 export const Route = createRootRoute({
   component: RootComponent,
