@@ -20,10 +20,6 @@ export function LotCard({
     async (k) => {
       const ky = getKy();
 
-      await new Promise((res) => {
-        setTimeout(res, 1000);
-      });
-
       return await ky
         .get(k[0], { searchParams: { lotId: k[1] }, throwHttpErrors: true })
         .json<LotMeasurementDto>();
