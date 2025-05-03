@@ -8,6 +8,6 @@ public class ParkingLotMeasurement
 {
     public required DateTimeOffset Timestamp {get; set;}
     public ParkingLot ParkingLot {get; set;} = null!;
-    public string ParkingLotId {get; set;} = null!;
+    public Guid ParkingLotId {get; set;}
     public required int AvailableSpaces {get; set;}
 }

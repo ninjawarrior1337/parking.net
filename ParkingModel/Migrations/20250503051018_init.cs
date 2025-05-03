@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ParkingModel.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,7 +15,8 @@ namespace ParkingModel.Migrations
                 name: "Lots",
                 columns: table => new
                 {
-                    LotId = table.Column<string>(type: "text", nullable: false),
+                    LotId = table.Column<Guid>(type: "uuid", nullable: false),
+                    LotName = table.Column<string>(type: "text", nullable: false),
                     SpacesCount = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -28,7 +29,7 @@ namespace ParkingModel.Migrations
                 columns: table => new
                 {
                     Timestamp = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    ParkingLotId = table.Column<string>(type: "text", nullable: false),
+                    ParkingLotId = table.Column<Guid>(type: "uuid", nullable: false),
                     AvailableSpaces = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>

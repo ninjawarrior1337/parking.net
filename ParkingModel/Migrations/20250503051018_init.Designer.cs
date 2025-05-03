@@ -5,14 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using ParkingModel;
 
 #nullable disable
 
 namespace ParkingModel.Migrations
 {
     [DbContext(typeof(ParkingContext))]
-    [Migration("20250319060254_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250503051018_init")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,9 +25,14 @@ namespace ParkingModel.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ParkingLot", b =>
+            modelBuilder.Entity("ParkingModel.ParkingLot", b =>
                 {
-                    b.Property<string>("LotId")
+                    b.Property<Guid>("LotId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LotName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("SpacesCount")
@@ -42,8 +48,8 @@ namespace ParkingModel.Migrations
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ParkingLotId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("ParkingLotId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("AvailableSpaces")
                         .HasColumnType("integer");
@@ -57,7 +63,7 @@ namespace ParkingModel.Migrations
 
             modelBuilder.Entity("ParkingModel.ParkingLotMeasurement", b =>
                 {
-                    b.HasOne("ParkingLot", "ParkingLot")
+                    b.HasOne("ParkingModel.ParkingLot", "ParkingLot")
                         .WithMany("Measurements")
                         .HasForeignKey("ParkingLotId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -66,7 +72,7 @@ namespace ParkingModel.Migrations
                     b.Navigation("ParkingLot");
                 });
 
-            modelBuilder.Entity("ParkingLot", b =>
+            modelBuilder.Entity("ParkingModel.ParkingLot", b =>
                 {
                     b.Navigation("Measurements");
                 });

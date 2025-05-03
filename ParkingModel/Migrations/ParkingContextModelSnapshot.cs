@@ -156,7 +156,12 @@ namespace ParkingModel.Migrations
 
             modelBuilder.Entity("ParkingModel.ParkingLot", b =>
                 {
-                    b.Property<string>("LotId")
+                    b.Property<Guid>("LotId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("LotName")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<int>("SpacesCount")
@@ -172,8 +177,8 @@ namespace ParkingModel.Migrations
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("ParkingLotId")
-                        .HasColumnType("text");
+                    b.Property<Guid>("ParkingLotId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("AvailableSpaces")
                         .HasColumnType("integer");

@@ -5,7 +5,9 @@ namespace ParkingModel;
 
 public class ParkingLot {
     [Key]
-    public required string LotId {get; set;}
+    public Guid LotId {get; set;}
+
+    public required string LotName {get; set;}
 
     public int SpacesCount {get; set;}
 
