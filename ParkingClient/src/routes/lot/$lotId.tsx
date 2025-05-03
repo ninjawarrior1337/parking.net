@@ -159,7 +159,7 @@ function RouteComponent() {
               />
             </div>
             <button
-              className="bg-red-500 p-2 px-3 rounded-xl font-bold text-white"
+              className="bg-red-500 p-2 px-3 rounded-xl font-bold text-white cursor-pointer"
               type="submit"
             >
               Add
