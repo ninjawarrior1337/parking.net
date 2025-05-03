@@ -7,6 +7,9 @@ export const useOnMeasurement = (lotId: string) => {
   const [measurements, setMeasurements] = useState<LotMeasurementEvent[]>([]);
 
   const handleOnMeasurement = useCallback((m: LotMeasurementEvent) => {
+    if(import.meta.env.DEV) {
+      console.log(m)
+    }
     if(lotId == m.lotId) {
         setMeasurements(prev => [...prev, m])
     }

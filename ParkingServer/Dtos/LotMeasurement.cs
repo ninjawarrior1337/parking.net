@@ -7,11 +7,11 @@ public class LotMeasurementDto() {
 }
 
 public class LotMeasurementEvent(): LotMeasurementDto {
-    public required string LotId {get; set;}
+    public required Guid LotId {get; set;}
 }
 
 public class LotMeasurementsDto() {
     public required IEnumerable<LotMeasurementDto> Measurements {get; set;}
 
-    public required string LotId {get; set;}
+    public required Guid LotId {get; set;}
 }

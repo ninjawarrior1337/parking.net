@@ -8,10 +8,12 @@ const MotionLink = createLink(motion.a)
 
 export function LotCard({
   lotId,
+  lotName,
   spacesCount,
   availableCount,
 }: {
   lotId: string;
+  lotName: string;
   spacesCount: number;
   availableCount?: number;
 }) {
@@ -46,7 +48,7 @@ export function LotCard({
         className="w-full h-full shadow-xl p-2 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 cursor-pointer z-50"
       >
         <div className="flex flex-col h-full justify-items-center items-center bg-white rounded-lg py-4">
-          <h1 className="text-5xl font-black">{lotId}</h1>
+          <h1 className="text-5xl font-black">{lotName}</h1>
           <div className="h-1 bg-red-500 w-9/12 my-2"></div>
           <motion.div
             className="text-xl flex items-center space-x-2"

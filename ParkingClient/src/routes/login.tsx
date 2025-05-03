@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { login } from "../lib/auth/tokenStore";
 import { useState } from "react";
 
@@ -7,6 +7,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function RouteComponent() {
+  const router = useRouter()
   const [error, setError] = useState("")
   const handleSubmit = async (formData: FormData) => {
     const username = formData.get("username") as string
@@ -24,7 +25,7 @@ function RouteComponent() {
       }
     }
     
-    history.go(-1)
+    router.history.back()
   }
 
   return (

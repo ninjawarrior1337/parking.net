@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ParkingModel;
@@ -9,6 +10,7 @@ namespace ParkingServer.Controllers;
 public class SeedController(UserManager<ParkingUser> userManager, RoleManager<IdentityRole> roleManager) : ControllerBase
 {
     [HttpPost("SeedAccounts")]
+    [Authorize(Roles = Roles.Roles.Admin)]
     public async Task SeedAccounts()
     {
         if(!await roleManager.RoleExistsAsync(Roles.Roles.Admin)) {

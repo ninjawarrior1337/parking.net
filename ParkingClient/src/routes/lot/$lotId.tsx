@@ -15,6 +15,7 @@ import { getKy } from "../../lib/api";
 import { LotDto, LotMeasurementDto } from "../../lib/api/types";
 import { isAdminAtom } from "../../lib/auth/tokenStore";
 import { useOnMeasurement } from "../../lib/useOnMeasurement";
+import { useFormStatus } from "react-dom";
 
 export const Route = createFileRoute("/lot/$lotId")({
   component: RouteComponent,
@@ -51,6 +52,19 @@ function NoDataChartFallback() {
         Please wait until a measurement is recorded
       </p>
     </div>
+  );
+}
+
+function SubmitButtton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      disabled={pending}
+      className="bg-red-500 p-2 px-3 rounded-xl font-bold text-white cursor-pointer disabled:bg-red-500/30"
+      type="submit"
+    >
+      Add
+    </button>
   );
 }
 
@@ -136,6 +150,7 @@ function RouteComponent() {
       <div className="lg:col-span-4 flex flex-col self-start space-y-8">
         <LotCard
           lotId={params.lotId}
+          lotName={data.lotInfo.lotName}
           availableCount={mergedMeasurements.at(-1)?.availableSpaces}
           spacesCount={data.lotInfo.spacesCount}
         ></LotCard>
@@ -158,12 +173,7 @@ function RouteComponent() {
                 defaultValue={0}
               />
             </div>
-            <button
-              className="bg-red-500 p-2 px-3 rounded-xl font-bold text-white cursor-pointer"
-              type="submit"
-            >
-              Add
-            </button>
+            <SubmitButtton />
           </form>
         )}
       </div>

@@ -11,6 +11,7 @@ export type LoginResponse = {
 
 export type LotDto = {
     lotId: string,
+    lotName: string,
     spacesCount: number
 }
 

@@ -1,4 +1,4 @@
-import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
+import { Link, Outlet, createRootRoute, useRouter } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { useAtomValue, useSetAtom } from "jotai";
 import * as React from "react";
@@ -10,13 +10,15 @@ export const Route = createRootRoute({
 
 const LogoutComponent = () => {
   const setTokenValue = useSetAtom(tokenAtom);
+  const router = useRouter()
   const handleClick = () => {
     setTokenValue(null);
+    router.history.push("/login")
   };
   return (
     <button
       onClick={handleClick}
-      className="p-3 bg-white rounded-lg font-bold shadow-2xl"
+      className="p-3 bg-white rounded-lg font-bold shadow-2xl cursor-pointer"
     >
       Logout
     </button>

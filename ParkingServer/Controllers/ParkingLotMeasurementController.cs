@@ -13,7 +13,7 @@ namespace ParkingServer.Controllers;
 public class ParkingLotMeasurementController(ParkingContext context, IHubContext<MeasurementsHub> measurementsHub) : ControllerBase
 {
     [HttpGet("GetLatest")]
-    public async Task<ActionResult<LotMeasurementDto>> GetLatest(string lotId)
+    public async Task<ActionResult<LotMeasurementDto>> GetLatest(Guid lotId)
     {
         var res = await context.Measurements.Where(l => l.ParkingLotId == lotId).OrderByDescending(l => l.Timestamp).Select(l => new LotMeasurementDto
         {
@@ -32,7 +32,7 @@ public class ParkingLotMeasurementController(ParkingContext context, IHubContext
     }
 
     [HttpGet("GetPastDays")]
-    public async Task<ActionResult<LotMeasurementsDto>> GetPastDays(string lotId, int days)
+    public async Task<ActionResult<LotMeasurementsDto>> GetPastDays(Guid lotId, int days)
     {
         var sinceDateTime = DateTimeOffset.Now.Subtract(new TimeSpan(days, 0, 0, 0)).ToUniversalTime();
 

@@ -29,6 +29,7 @@ const LotsCardSetComponent = ({
   return lots.map((l) => (
     <LotCard
       key={l.lotId}
+      lotName={l.lotName}
       lotId={l.lotId}
       spacesCount={l.spacesCount}
     ></LotCard>

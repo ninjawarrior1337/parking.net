@@ -9,7 +9,7 @@ public class ScrapeParkingDataJob(IHubContext<MeasurementsHub> hub) : IJob
     {
         await hub.Clients.All.SendAsync("OnMeasurement", new LotMeasurementEvent() {
             Timestamp = DateTimeOffset.Now,
-            LotId = "bruh",
+            LotId = Guid.NewGuid(),
             AvailableSpaces = 300
         });
     }
