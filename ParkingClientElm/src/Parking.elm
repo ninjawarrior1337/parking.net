@@ -41,7 +41,7 @@ type Model
 getAllLots : Cmd Msg
 getAllLots =
     Http.get
-        { url = "http://maru:9327/api/ParkingLotInfo/GetAllLots"
+        { url = "https://api.parking.csun.treelar.xyz/api/ParkingLotInfo/GetAllLots"
         , expect = Http.expectJson GotLotInfo listParkingDecoder
         }
 
