@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
+import { useFormStatus } from "react-dom";
 import {
   CartesianGrid,
   Line,
@@ -10,12 +11,12 @@ import {
   XAxis,
 } from "recharts";
 import useSWRImmutable from "swr/immutable";
+import HistoryDaysSelector from "../../components/HistoryDaysSelector";
 import { LotCard } from "../../components/LotCard";
 import { getKy } from "../../lib/api";
 import { LotDto, LotMeasurementDto } from "../../lib/api/types";
 import { isAdminAtom } from "../../lib/auth/tokenStore";
 import { useOnMeasurement } from "../../lib/useOnMeasurement";
-import { useFormStatus } from "react-dom";
 
 export const Route = createFileRoute("/lot/$lotId")({
   component: RouteComponent,
@@ -73,13 +74,16 @@ function RouteComponent() {
   const search = Route.useSearch();
   const data = Route.useLoaderData();
   const isAdmin = useAtomValue(isAdminAtom);
+  const navigate = useNavigate();
 
-  const streamedMeasurements = useOnMeasurement(params.lotId);
+  const { measurements: streamedMeasurements, reset: resetStreamedMessages } =
+    useOnMeasurement(params.lotId);
 
   const { data: historicalData, isLoading } = useSWRImmutable(
     ["ParkingLotMeasurement/GetPastDays", params.lotId, search.historyLength],
     async (k) => {
       const ky = getKy();
+
       return ky
         .get(k[0], { searchParams: { lotId: k[1], days: k[2] } })
         .json<{ measurements: LotMeasurementDto[]; lotId: string }>()
@@ -118,33 +122,48 @@ function RouteComponent() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 w-full p-8 gap-8">
-      <div className="lg:col-span-8 h-64 lg:order-last">
-        {isLoading ? (
-          <LoadingChartFallback />
-        ) : mergedMeasurements.length === 0 ? (
-          <NoDataChartFallback></NoDataChartFallback>
-        ) : (
-          <ResponsiveContainer>
-            <LineChart
-              height={400}
-              data={mergedMeasurements}
-              margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-            >
-              <XAxis
-                tickFormatter={(v: Date) => v.toLocaleString()}
-                dataKey="timestamp"
-              />
-              <Tooltip />
-              <CartesianGrid stroke="#f5f5f5" />
-              <Line
-                name="Available Spaces"
-                type="monotone"
-                dataKey="availableSpaces"
-                stroke="#e4007f"
-                yAxisId={0}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+      <div className="col-span-1 lg:col-span-8 flex flex-col order-last space-y-4">
+        <div className="min-h-64 h-64 rounded-lg">
+          {isLoading ? (
+            <LoadingChartFallback />
+          ) : mergedMeasurements.length === 0 ? (
+            <NoDataChartFallback></NoDataChartFallback>
+          ) : (
+            <ResponsiveContainer>
+              <LineChart
+                height={400}
+                data={mergedMeasurements}
+                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+              >
+                <XAxis
+                  tickFormatter={(v: Date) => v.toLocaleString()}
+                  dataKey="timestamp"
+                />
+                <Tooltip />
+                <CartesianGrid stroke="#f5f5f5" />
+                <Line
+                  name="Available Spaces"
+                  type="monotone"
+                  dataKey="availableSpaces"
+                  stroke="#e4007f"
+                  yAxisId={0}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+        {(mergedMeasurements.length > 0 || isLoading) && (
+          <HistoryDaysSelector
+            daySelected={search.historyLength}
+            onSelect={(d) => {
+              navigate({
+                to: "/lot/$lotId",
+                search: { historyLength: d },
+                params,
+              });
+              resetStreamedMessages();
+            }}
+          />
         )}
       </div>
       <div className="lg:col-span-4 flex flex-col self-start space-y-8">

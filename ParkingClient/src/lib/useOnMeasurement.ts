@@ -33,5 +33,9 @@ export const useOnMeasurement = (lotId: string) => {
     };
   }, [lotId, handleOnMeasurement]);
 
-  return measurements;
+  const reset = () => {
+    setMeasurements([])
+  }
+
+  return {measurements, reset};
 };
