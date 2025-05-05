@@ -8,90 +8,78 @@ import Html.Events exposing (onClick)
 import Http
 import Json.Decode exposing (Decoder, field, int, list, map2, string)
 import List exposing (map)
+import Lots exposing (Lot, LotMeasurement, listParkingDecoder, parkingLatestDecoder)
 import Time
 
 
-type alias LotDto =
-    { lotId : String
-    , spacesCount : Int
-    }
-
-
-type alias LotMeasurementDto =
-    { timestamp : String
-    , availableSpaces : Int
-    }
-
-
-type Promise r
-    = Failure
+type WebData r
+    = Failure Http.Error
     | Loading
     | Success r
 
 
-type Model
+type alias API =
+    String
+
+
+type LotState
     = LotsLoading
     | LotsLoadingFailure
     | LotsLoaded
-        { lotsInfo : List LotDto
-        , latestLotsInfo : Dict String (Promise LotMeasurementDto)
+        { lotsInfo : List Lot
+        , latestLotsInfo : Dict String (WebData LotMeasurement)
         }
 
 
-getAllLots : Cmd Msg
-getAllLots =
+type alias Model =
+    ( API, LotState )
+
+
+replaceModel : Model -> LotState -> Model
+replaceModel v t =
+    v |> Tuple.mapSecond (\_ -> t)
+
+
+getAllLots : API -> Cmd Msg
+getAllLots api =
     Http.get
-        { url = "https://api.parking.csun.treelar.xyz/api/ParkingLotInfo/GetAllLots"
+        { url = api ++ "/ParkingLotInfo/GetAllLots"
         , expect = Http.expectJson GotLotInfo listParkingDecoder
         }
 
 
-getLatestForLot : String -> Cmd Msg
-getLatestForLot lotId =
+getLatestForLot : API -> String -> Cmd Msg
+getLatestForLot api lotId =
     Http.get
-        { url = "https://api.parking.csun.treelar.xyz/api/ParkingLotMeasurement/GetLatest" ++ "?lotId=" ++ lotId
+        { url = api ++ "/ParkingLotMeasurement/GetLatest" ++ "?lotId=" ++ lotId
         , expect = Http.expectJson (GotLatestLotMeasurement lotId) parkingLatestDecoder
         }
 
 
-parkingInfoDecoder : Decoder LotDto
-parkingInfoDecoder =
-    map2 LotDto
-        (field "lotId" string)
-        (field "spacesCount" int)
-
-
-parkingLatestDecoder : Decoder LotMeasurementDto
-parkingLatestDecoder =
-    map2 LotMeasurementDto
-        (field "timestamp" string)
-        (field "availableSpaces" int)
-
-
-listParkingDecoder : Decoder (List LotDto)
-listParkingDecoder =
-    list parkingInfoDecoder
-
-
 type Msg
-    = GotLotInfo (Result Http.Error (List LotDto))
-    | GotLatestLotMeasurement String (Result Http.Error LotMeasurementDto)
-    | Tick (Time.Posix)
+    = GotLotInfo (Result Http.Error (List Lot))
+    | GotLatestLotMeasurement String (Result Http.Error LotMeasurement)
+    | Tick Time.Posix
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( LotsLoading
-    , getAllLots
+type alias Flags =
+    { api_base : API
+    }
+
+
+init : Flags -> ( Model, Cmd Msg )
+init f =
+    ( ( f.api_base, LotsLoading )
+    , getAllLots f.api_base
     )
 
 
-lotIdFromDto : LotDto -> String
+lotIdFromDto : Lot -> String
 lotIdFromDto l =
     l.lotId
 
 
-lotIdsFromDtos : List LotDto -> List String
+lotIdsFromDtos : List Lot -> List String
 lotIdsFromDtos =
     List.map lotIdFromDto
 
@@ -100,61 +88,72 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick _ ->
-            (model, getAllLots)
+            ( model, getAllLots (Tuple.first model) )
+
         GotLotInfo res ->
             case res of
                 Ok lots ->
-                    ( LotsLoaded
-                        { lotsInfo = lots
-                        , latestLotsInfo =
-                            lots
-                                |> List.map (\l -> ( lotIdFromDto l, Loading ))
-                                |> Dict.fromList
-                        }
+                    ( model
+                        |> Tuple.mapSecond
+                            (\_ ->
+                                LotsLoaded
+                                    { lotsInfo = lots
+                                    , latestLotsInfo =
+                                        lots
+                                            |> List.map (\l -> ( lotIdFromDto l, Loading ))
+                                            |> Dict.fromList
+                                    }
+                            )
                     , Cmd.batch
                         (lots
                             |> List.map lotIdFromDto
-                            |> List.map getLatestForLot
+                            |> List.map (getLatestForLot (Tuple.first model))
                         )
                     )
 
                 Err _ ->
-                    ( LotsLoadingFailure
+                    ( model |> Tuple.mapSecond (\_ -> LotsLoadingFailure)
                     , Cmd.none
                     )
 
         GotLatestLotMeasurement lotId res ->
             case model of
-                LotsLoaded d ->
+                ( _, LotsLoaded d ) ->
                     case res of
                         Ok measurement ->
-                            ( LotsLoaded
-                                { d
-                                    | latestLotsInfo =
-                                        d.latestLotsInfo
-                                            |> Dict.insert lotId (Success measurement)
-                                }
+                            ( model
+                                |> Tuple.mapSecond
+                                    (\_ ->
+                                        LotsLoaded
+                                            { d
+                                                | latestLotsInfo =
+                                                    d.latestLotsInfo
+                                                        |> Dict.insert lotId (Success measurement)
+                                            }
+                                    )
                             , Cmd.none
                             )
 
-                        Err _ ->
-                            ( LotsLoaded
-                                { d
-                                    | latestLotsInfo =
-                                        d.latestLotsInfo
-                                            |> Dict.insert lotId Failure
-                                }
+                        Err e ->
+                            ( replaceModel model
+                                (LotsLoaded
+                                    { d
+                                        | latestLotsInfo =
+                                            d.latestLotsInfo
+                                                |> Dict.insert lotId (Failure e)
+                                    }
+                                )
                             , Cmd.none
                             )
 
                 _ ->
-                    ( LotsLoadingFailure, Cmd.none )
+                    ( replaceModel model LotsLoadingFailure, Cmd.none )
 
 
-viewLot : LotDto -> Promise LotMeasurementDto -> Html Msg
+viewLot : Lot -> WebData LotMeasurement -> Html Msg
 viewLot lot li =
     div [ class "flex flex-col items-center border-2 p-2" ]
-        [ p [ class "text-center text-4xl font-bold" ] [ text lot.lotId ]
+        [ p [ class "text-center text-4xl font-bold" ] [ text lot.lotName ]
         , p []
             [ case li of
                 Success x ->
@@ -172,7 +171,7 @@ viewLot lot li =
 
 
 view : Model -> Html Msg
-view model =
+view (api, model) =
     case model of
         LotsLoaded d ->
             div [ class "grid grid-cols-2 w-full gap-4 p-4" ]
@@ -186,16 +185,12 @@ view model =
         LotsLoading ->
             text "Loading..."
 
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Time.every 5000 Tick
 
-
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
-        { init = \_ -> init
+        { init = init
         , view = view
         , update = update
-        , subscriptions = subscriptions
+        , subscriptions = \_ -> Sub.none
         }
