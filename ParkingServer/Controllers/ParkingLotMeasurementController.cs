@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
@@ -31,10 +32,14 @@ public class ParkingLotMeasurementController(ParkingContext context, IHubContext
         }
     }
 
-    [HttpGet("GetPastDays")]
-    public async Task<ActionResult<LotMeasurementsDto>> GetPastDays(Guid lotId, int days)
+    [HttpGet("GetHistory")]
+    public async Task<ActionResult<LotMeasurementsDto>> GetHistory(Guid lotId, int hours = 0, int days = 0)
     {
-        var sinceDateTime = DateTimeOffset.Now.Subtract(new TimeSpan(days, 0, 0, 0)).ToUniversalTime();
+        if (hours == 0 && days == 0) {
+            return BadRequest();
+        }
+
+        var sinceDateTime = DateTimeOffset.Now.Subtract(new TimeSpan(days, hours, 0, 0)).ToUniversalTime();
 
         var pl = await context.Lots
             .Where(l => l.LotId == lotId)
@@ -57,7 +62,7 @@ public class ParkingLotMeasurementController(ParkingContext context, IHubContext
 
         return new LotMeasurementsDto
         {
-            LotId = lotId,
+            LotId = pl.LotId,
             Measurements = measurements
         };
     }

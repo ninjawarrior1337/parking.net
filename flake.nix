@@ -40,7 +40,7 @@
                 enable = true;
                 pnpm.enable = true;
               };
-              languages.elm.enable = true;
+              # languages.elm.enable = true;
 
               processes = {
                 "dev:backend" = {

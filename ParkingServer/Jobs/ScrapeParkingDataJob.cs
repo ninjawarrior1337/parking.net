@@ -9,7 +9,6 @@ class ReadingFromAPI
 {
     public required string LotName { get; set; }
     public int AvailableSpaces { get; set; }
-
     public static Dictionary<string, int> MaxSpacesDict = new Dictionary<string, int>();
 
     static ReadingFromAPI()
@@ -36,7 +35,7 @@ class ReadingFromAPI
     }
 }
 
-public class ScrapeParkingDataJob(IHubContext<MeasurementsHub> hub, ParkingContext db) : IJob
+public class ScrapeParkingDataJob(IHubContext<MeasurementsHub> hub, ParkingContext db, IWebHostEnvironment env) : IJob
 {
     // Imagine we had some way to get accurate parking data but only by polling some HTTP endpoint.
     // This was what this was for, imagine this HTTP endpoint somehow existed and the data was somehow gotten.
@@ -50,19 +49,23 @@ public class ScrapeParkingDataJob(IHubContext<MeasurementsHub> hub, ParkingConte
         {
             var lot = await db.Lots.Where(l => l.LotName == r.LotName).FirstAsync();
 
-            lot.Measurements.Add(new ParkingLotMeasurement
+            if (!env.IsDevelopment())
             {
-                Timestamp = DateTimeOffset.Now.ToUniversalTime(),
-                AvailableSpaces = r.AvailableSpaces
-            });
+                lot.Measurements.Add(new ParkingLotMeasurement
+                {
+                    Timestamp = DateTimeOffset.Now.ToUniversalTime(),
+                    AvailableSpaces = r.AvailableSpaces
+                });
 
-            await db.SaveChangesAsync();
-            await hub.Clients.All.SendAsync("OnMeasurement", new LotMeasurementEvent()
-            {
-                Timestamp = DateTimeOffset.Now,
-                LotId = lot.LotId,
-                AvailableSpaces = r.AvailableSpaces
-            });
+                await db.SaveChangesAsync();
+                await hub.Clients.All.SendAsync("OnMeasurement", new LotMeasurementEvent()
+                {
+                    Timestamp = DateTimeOffset.Now,
+                    LotId = lot.LotId,
+                    AvailableSpaces = r.AvailableSpaces
+                });
+            }
+
         }
     }
 }

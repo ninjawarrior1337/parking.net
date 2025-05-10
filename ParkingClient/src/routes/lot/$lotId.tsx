@@ -11,20 +11,19 @@ import {
   XAxis,
 } from "recharts";
 import useSWRImmutable from "swr/immutable";
-import HistoryDaysSelector from "../../components/HistoryDaysSelector";
+import HistoryDaysSelector, {
+  rangeSelectedSchema,
+} from "../../components/HistoryDaysSelector";
 import { LotCard } from "../../components/LotCard";
 import { getKy } from "../../lib/api";
 import { LotDto, LotMeasurementDto } from "../../lib/api/types";
 import { isAdminAtom } from "../../lib/auth/tokenStore";
 import { useOnMeasurement } from "../../lib/useOnMeasurement";
+import { useSWRConfig } from "swr";
 
 export const Route = createFileRoute("/lot/$lotId")({
   component: RouteComponent,
-  validateSearch: (search) => {
-    return {
-      historyLength: Number(search?.historyLength ?? 30),
-    };
-  },
+  validateSearch: rangeSelectedSchema.parse,
   loader: async ({ params, abortController }) => {
     const ky = getKy();
 
@@ -76,16 +75,35 @@ function RouteComponent() {
   const isAdmin = useAtomValue(isAdminAtom);
   const navigate = useNavigate();
 
+  const { mutate } = useSWRConfig();
+
   const { measurements: streamedMeasurements, reset: resetStreamedMessages } =
     useOnMeasurement(params.lotId);
 
   const { data: historicalData, isLoading } = useSWRImmutable(
-    ["ParkingLotMeasurement/GetPastDays", params.lotId, search.historyLength],
+    ["ParkingLotMeasurement/GetHistory", params.lotId, search],
     async (k) => {
       const ky = getKy();
 
+      const getSearchParams = () => {
+        switch (k[2].type) {
+          case "days":
+            return {
+              lotId: k[1],
+              days: k[2].days,
+              hours: 0,
+            };
+          case "hours":
+            return {
+              lotId: k[1],
+              hours: k[2].hours,
+              days: 0,
+            };
+        }
+      };
+
       return ky
-        .get(k[0], { searchParams: { lotId: k[1], days: k[2] } })
+        .get(k[0], { searchParams: getSearchParams() })
         .json<{ measurements: LotMeasurementDto[]; lotId: string }>()
         .then((res) => ({
           ...res,
@@ -142,6 +160,7 @@ function RouteComponent() {
                 <Tooltip />
                 <CartesianGrid stroke="#f5f5f5" />
                 <Line
+                  dot={false}
                   name="Available Spaces"
                   type="monotone"
                   dataKey="availableSpaces"
@@ -152,19 +171,22 @@ function RouteComponent() {
             </ResponsiveContainer>
           )}
         </div>
-        {(mergedMeasurements.length > 0 || isLoading) && (
-          <HistoryDaysSelector
-            daySelected={search.historyLength}
-            onSelect={(d) => {
-              navigate({
-                to: "/lot/$lotId",
-                search: { historyLength: d },
-                params,
-              });
-              resetStreamedMessages();
-            }}
-          />
-        )}
+        <HistoryDaysSelector
+          rangeSelected={search}
+          onSelect={(s) => {
+            navigate({
+              to: "/lot/$lotId",
+              search: s,
+              params,
+            });
+            mutate(
+              ["ParkingLotMeasurement/GetHistory", params.lotId, s],
+              undefined,
+              { revalidate: true }
+            );
+            resetStreamedMessages();
+          }}
+        />
       </div>
       <div className="lg:col-span-4 flex flex-col self-start space-y-8">
         <LotCard

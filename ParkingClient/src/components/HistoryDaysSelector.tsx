@@ -1,27 +1,73 @@
+import { z } from "zod";
+
+const hoursSchema = z.union([
+  z.literal(1),
+  z.literal(6),
+  z.literal(12),
+  z.literal(24),
+]);
+const daysSchema = z.union([
+  z.literal(30),
+  z.literal(60),
+  z.literal(90),
+  z.literal(365),
+]);
 
 const daysSelection = [30, 60, 90, 365] as const;
-type DaysSelectable = (typeof daysSelection)[number];
+const hoursSelection = [1, 6, 12, 24] as const;
+
+export const rangeSelectedSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("days"), days: daysSchema }),
+  z.object({ type: z.literal("hours"), hours: hoursSchema }),
+]);
+
+type RangeSelection = z.infer<typeof rangeSelectedSchema>;
 
 type Props = {
-  daySelected: DaysSelectable | number;
-  onSelect: (d: Props["daySelected"]) => void;
+  rangeSelected: RangeSelection;
+  onSelect: (d: Props["rangeSelected"]) => void;
 };
 
-export default function HistoryDaysSelector({ daySelected, onSelect }: Props) {
+export default function HistoryDaysSelector({
+  rangeSelected,
+  onSelect,
+}: Props) {
   return (
     <div className="w-full h-48 bg-blue-400/30 rounded-xl flex basis-full flex-col justify-around">
-      <h3 className="text-center text-4xl font-bold pt-4 text-blue-600">
-        Days of History
+      <h3 className="text-center text-2xl font-bold pt-4 text-blue-600">
+        History
       </h3>
-      <div className="flex items-center h-full justify-around p-8">
-        {daysSelection.map((d) => (
-          <button
-            className={`text-blue-600 font-bold text-3xl ${daySelected === d ? "bg-blue-300/90" : "bg-blue-300/30"} p-4 rounded-full cursor-pointer`}
-            onClick={() => onSelect(d)}
-          >
-            {d}
-          </button>
-        ))}
+      <div className="grid grid-cols-2 gap-4 p-4">
+        <div className="grid grid-cols-2 gap-4 h-full rounded-2xl border-x-2 border-blue-400">
+          {hoursSelection.map((d) => (
+            <button
+              className={`text-blue-600 font-bold text-2xl ${rangeSelected.type === "hours" && rangeSelected.hours === d ? "bg-blue-300/90" : "bg-blue-300/30"} rounded-lg p-4 cursor-pointer`}
+              onClick={() =>
+                onSelect({
+                  type: "hours",
+                  hours: d,
+                })
+              }
+            >
+              {d}h
+            </button>
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-4 h-full rounded-2xl border-x-2 border-blue-400">
+          {daysSelection.map((d) => (
+            <button
+              className={`text-blue-600 font-bold text-2xl ${rangeSelected.type === "days" && rangeSelected.days === d ? "bg-blue-300/90" : "bg-blue-300/30"} rounded-lg p-4 cursor-pointer`}
+              onClick={() =>
+                onSelect({
+                  type: "days",
+                  days: d,
+                })
+              }
+            >
+              {d}d
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );
