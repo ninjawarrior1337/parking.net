@@ -11,14 +11,16 @@ export function LotCard({
   lotName,
   spacesCount,
   availableCount,
+  autoRefresh,
 }: {
   lotId: string;
   lotName: string;
   spacesCount: number;
   availableCount?: number;
+  autoRefresh?: boolean;
 }) {
   const { data, isLoading, error } = useSWR(
-    availableCount ? null : ["ParkingLotMeasurement/GetLatest", lotId],
+    autoRefresh ? ["ParkingLotMeasurement/GetLatest", lotId] : null,
     async (k) => {
       const ky = getKy();
 
@@ -58,9 +60,9 @@ export function LotCard({
             className="text-xl flex items-center space-x-2"
             style={{ color: textColor }}
           >
-            {error || (!trueSpacesAvailable && !isLoading) ? (
+            {error || (!trueSpacesAvailable && !isLoading && autoRefresh) ? (
               <span className="text-center text-red-500">???</span>
-            ) : isLoading ? (
+            ) : (isLoading || (!autoRefresh && !availableCount)) ? (
               <span className="animate-pulse rounded bg-red-500/30 w-16 h-6 inline-block"></span>
             ) : (
               <span className="text-center">{trueSpacesAvailable}</span>

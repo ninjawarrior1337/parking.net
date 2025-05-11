@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAtomValue } from "jotai";
-import { useMemo } from "react";
+import { useEffect, useMemo, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import {
   CartesianGrid,
@@ -74,7 +74,7 @@ function RouteComponent() {
   const data = Route.useLoaderData();
   const isAdmin = useAtomValue(isAdminAtom);
   const navigate = useNavigate();
-
+  const [isPending, startTransition] = useTransition()
   const { mutate } = useSWRConfig();
 
   const { measurements: streamedMeasurements, reset: resetStreamedMessages } =
@@ -138,6 +138,10 @@ function RouteComponent() {
     });
   };
 
+  useEffect(() => {
+    console.log(mergedMeasurements)
+  }, [mergedMeasurements])
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 w-full p-8 gap-8">
       <div className="col-span-1 lg:col-span-8 flex flex-col order-last space-y-4">
@@ -172,19 +176,22 @@ function RouteComponent() {
           )}
         </div>
         <HistoryDaysSelector
+          disabled={isPending}
           rangeSelected={search}
           onSelect={(s) => {
-            navigate({
-              to: "/lot/$lotId",
-              search: s,
-              params,
-            });
-            mutate(
-              ["ParkingLotMeasurement/GetHistory", params.lotId, s],
-              undefined,
-              { revalidate: true }
-            );
-            resetStreamedMessages();
+            startTransition(async() => {
+              await mutate(
+                ["ParkingLotMeasurement/GetHistory", params.lotId, s],
+                undefined,
+                { optimisticData: {measurements: [mergedMeasurements.at(-1)]}, populateCache: true }
+              );
+              resetStreamedMessages();
+              await navigate({
+                to: "/lot/$lotId",
+                search: s,
+                params,
+              });
+            })
           }}
         />
       </div>
