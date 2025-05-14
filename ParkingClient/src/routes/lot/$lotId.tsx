@@ -118,7 +118,7 @@ function RouteComponent() {
         }));
     },
     {
-      revalidateOnMount: true,
+      revalidateOnMount: true
     }
   );
 
@@ -183,7 +183,7 @@ function RouteComponent() {
               await mutate(
                 ["ParkingLotMeasurement/GetHistory", params.lotId, s],
                 undefined,
-                { optimisticData: {measurements: [mergedMeasurements.at(-1)]}, populateCache: true }
+                { optimisticData: {measurements: [mergedMeasurements.at(-1)]}, revalidate: true, populateCache: true }
               );
               resetStreamedMessages();
               await navigate({

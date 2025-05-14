@@ -1,19 +1,29 @@
-import { useCallback, useEffect, useState } from "react";
 import * as SignalR from "@microsoft/signalr";
-import { LotMeasurementEvent } from "./api/types";
-
+import { useCallback, useEffect, useState } from "react";
+import { useSWRConfig } from "swr";
+import { LotMeasurementDto, LotMeasurementEvent } from "./api/types";
 
 export const useOnMeasurement = (lotId: string) => {
   const [measurements, setMeasurements] = useState<LotMeasurementEvent[]>([]);
+  const { mutate } = useSWRConfig();
 
-  const handleOnMeasurement = useCallback((m: LotMeasurementEvent) => {
-    if(import.meta.env.DEV) {
-      console.log(m)
-    }
-    if(lotId == m.lotId) {
-        setMeasurements(prev => [...prev, m])
-    }
-  }, [lotId])
+  const handleOnMeasurement = useCallback(
+    (m: LotMeasurementEvent) => {
+      if (import.meta.env.DEV) {
+        console.log(m);
+      }
+
+      mutate(["ParkingLotMeasurement/GetLatest", m.lotId], {
+        timestamp: m.timestamp,
+        availableSpaces: m.availableSpaces,
+      } satisfies LotMeasurementDto);
+
+      if (lotId == m.lotId) {
+        setMeasurements((prev) => [...prev, m]);
+      }
+    },
+    [lotId, mutate]
+  );
 
   useEffect(() => {
     const connection = new SignalR.HubConnectionBuilder()
@@ -34,8 +44,8 @@ export const useOnMeasurement = (lotId: string) => {
   }, [lotId, handleOnMeasurement]);
 
   const reset = () => {
-    setMeasurements([])
-  }
+    setMeasurements([]);
+  };
 
-  return {measurements, reset};
+  return { measurements, reset };
 };
