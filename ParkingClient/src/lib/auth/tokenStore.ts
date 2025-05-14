@@ -50,7 +50,5 @@ export const login = async (loginRequest: LoginRequest) => {
   if (loginResponse.success) {
     const store = getDefaultStore();
     store.set(tokenAtom, loginResponse.token);
-  } else {
-    throw new Error(loginResponse.message);
   }
 };
