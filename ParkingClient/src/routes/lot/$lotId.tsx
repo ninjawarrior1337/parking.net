@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useAtomValue } from "jotai";
-import { useEffect, useMemo, useTransition } from "react";
+import { useMemo, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import {
   CartesianGrid,
@@ -36,6 +36,11 @@ export const Route = createFileRoute("/lot/$lotId")({
         .json<LotDto>(),
     };
   },
+  head: ({loaderData}) => ({
+    meta: [
+      {title: `Parking - ${loaderData.lotInfo.lotName}`}
+    ]
+  }),
 });
 
 function LoadingChartFallback() {
@@ -137,10 +142,6 @@ function RouteComponent() {
       },
     });
   };
-
-  useEffect(() => {
-    console.log(mergedMeasurements)
-  }, [mergedMeasurements])
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 w-full p-8 gap-8">

@@ -43,6 +43,7 @@ export default function HistoryDaysSelector({
         <div className="grid grid-cols-2 gap-4 h-full rounded-2xl border-x-2 border-blue-400">
           {hoursSelection.map((d) => (
             <button
+              key={d}
               disabled={disabled}
               className={`text-blue-600 font-bold text-2xl ${rangeSelected.type === "hours" && rangeSelected.hours === d ? "bg-blue-300/90" : "bg-blue-300/30"} rounded-lg p-4 cursor-pointer`}
               onClick={() =>
@@ -59,6 +60,7 @@ export default function HistoryDaysSelector({
         <div className="grid grid-cols-2 gap-4 h-full rounded-2xl border-x-2 border-blue-400">
           {daysSelection.map((d) => (
             <button
+              key={d}
               disabled={disabled}
               className={`text-blue-600 font-bold text-2xl ${rangeSelected.type === "days" && rangeSelected.days === d ? "bg-blue-300/90" : "bg-blue-300/30"} rounded-lg p-4 cursor-pointer disabled:cursor-auto`}
               onClick={() =>
