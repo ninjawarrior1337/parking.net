@@ -10,20 +10,19 @@ import {
   Tooltip,
   XAxis,
 } from "recharts";
+import { useSWRConfig } from "swr";
 import useSWRImmutable from "swr/immutable";
-import HistoryDaysSelector, {
-  rangeSelectedSchema,
-} from "../../components/HistoryDaysSelector";
+import HistoryDaysSelector from "../../components/HistoryDaysSelector";
 import { LotCard } from "../../components/LotCard";
 import { getKy } from "../../lib/api";
 import { LotDto, LotMeasurementDto } from "../../lib/api/types";
 import { isAdminAtom } from "../../lib/auth/tokenStore";
+import { historySelectedSchema } from "../../lib/historySelection";
 import { useOnMeasurement } from "../../lib/useOnMeasurement";
-import { useSWRConfig } from "swr";
 
 export const Route = createFileRoute("/lot/$lotId")({
   component: RouteComponent,
-  validateSearch: rangeSelectedSchema.parse,
+  validateSearch: historySelectedSchema.parse,
   loader: async ({ params, abortController }) => {
     const ky = getKy();
 
