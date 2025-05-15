@@ -189,6 +189,7 @@ function RouteComponent() {
               await navigate({
                 to: "/lot/$lotId",
                 search: s,
+                replace: true,
                 params,
               });
             })
