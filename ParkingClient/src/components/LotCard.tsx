@@ -50,7 +50,7 @@ export function LotCard({
       to="/lot/$lotId"
       params={{ lotId }}
       search={{ type: "hours", hours: 6 }}
-      layoutId={`LotCard-${lotId}`}
+      // layoutId={`LotCard-${lotId}`}
     >
       <div className="w-full h-full shadow-xl p-2 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 cursor-pointer z-50">
         <div className="flex flex-col h-full justify-items-center items-center bg-white rounded-lg py-4">

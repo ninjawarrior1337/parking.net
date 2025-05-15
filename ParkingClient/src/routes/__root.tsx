@@ -8,11 +8,10 @@ export const Route = createRootRoute({
 });
 
 function RootComponent() {
-
   return (
     <React.Fragment>
-      <HeadContent/>
-      <Navbar/>
+      <HeadContent />
+      <Navbar />
       <div className="h-[calc(100vh-80px)]">
         <Outlet />
       </div>

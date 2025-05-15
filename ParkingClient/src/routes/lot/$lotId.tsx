@@ -84,7 +84,7 @@ function RouteComponent() {
   const { measurements: streamedMeasurements, reset: resetStreamedMessages } =
     useOnMeasurement(params.lotId);
 
-  const { data: historicalData, isLoading } = useSWRImmutable(
+  const { data: historicalData, isLoading, isValidating } = useSWRImmutable(
     ["ParkingLotMeasurement/GetHistory", params.lotId, search],
     async (k) => {
       const ky = getKy();
@@ -129,6 +129,14 @@ function RouteComponent() {
 
     return streamedMeasurements;
   }, [historicalData, streamedMeasurements]);
+
+  const latestMeasurement = useMemo(() => {
+    if(isLoading || isValidating) {
+      return undefined
+    }
+
+    return mergedMeasurements.at(-1)
+  }, [isLoading, isValidating, mergedMeasurements])
 
   const handleAddMeasurement = async (formData: FormData) => {
     const availableSpaces = parseInt(formData.get("availableSpaces") as string);
@@ -200,7 +208,7 @@ function RouteComponent() {
         <LotCard
           lotId={params.lotId}
           lotName={data.lotInfo.lotName}
-          availableCount={mergedMeasurements.at(-1)?.availableSpaces}
+          availableCount={latestMeasurement?.availableSpaces}
           spacesCount={data.lotInfo.spacesCount}
         ></LotCard>
         {isAdmin && (
